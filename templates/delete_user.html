@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>#ACLQ</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script>
+        function toggleTimeInput(action) {
+            const timeInputContainer = document.getElementById('time_input');
+            const scheduledTimeInput = document.getElementById('scheduled_time');
+
+            if (action === 'schedule') {
+                timeInputContainer.style.display = 'block'; // Hiện input thời gian
+                scheduledTimeInput.setAttribute('required', 'required'); // Bắt buộc trường này
+            } else {
+                timeInputContainer.style.display = 'none'; // Ẩn input thời gian
+                scheduledTimeInput.removeAttribute('required'); // Không bắt buộc trường này
+            }
+        }
+
+        function validateForm() {
+            const scheduledTime = document.getElementById('scheduled_time').value;
+            const timePattern = /^(2[0-3]|[01]?[0-9]):[0-5][0-9]$/; // Định dạng HH:MM
+
+            if (scheduledTime && !timePattern.test(scheduledTime)) {
+                alert("Vui lòng nhập thời gian theo định dạng 24 giờ (HH:MM).");
+                return false; // Ngăn không cho gửi form
+            }
+            return true; // Cho phép gửi form
+        }
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h2>Nhập ID Người Dùng Cần Xóa</h2>
+        <form method="POST" class="mb-4" onsubmit="return validateForm()">
+            <div class="form-group">
+                <label for="delete_username">ID Người Dùng:</label>
+                <input type="text" class="form-control" id="delete_username" name="delete_username" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="action_delete_now" onclick="toggleTimeInput('delete_now')">
+                    <input type="radio" id="action_delete_now" name="action" value="delete_now" required>
+                    Xóa Ngay
+                </label>
+                <label for="action_schedule" onclick="toggleTimeInput('schedule')">
+                    <input type="radio" id="action_schedule" name="action" value="schedule">
+                    Lên Lịch
+                </label>
+            </div>
+            <div id="time_input" style="display:none;">
+                <label for="scheduled_time">Thời gian (HH:MM):</label>
+                <input type="text" class="form-control" id="scheduled_time" name="scheduled_time" placeholder="Ví dụ: 14:30">
+            </div>
+
+            <input type="submit" class="btn btn-primary" value="Gửi">
+        </form>
+
+        <h2>Lịch Sử Lịch Trình</h2>
+        <ul class="list-group mb-4">
+            {% for schedule in schedule_history %}
+                <li class="list-group-item">
+                    Xóa ID: {{ schedule.delete_username }} vào lúc {{ schedule.scheduled_time }}
+                    <form action="{{ url_for('delete_schedule', schedule_id=schedule.id) }}" method="POST" style="display:inline;">
+                        <input type="submit" class="btn btn-danger btn-sm" value="Xóa Lịch Trình">
+                    </form>
+                </li>
+            {% else %}
+                <li class="list-group-item">Không có lịch sử nào.</li>
+            {% endfor %}
+        </ul>
+
+        <!-- Hiển thị thông báo -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="alert alert-dismissible fade show" role="alert">
+                    <ul>
+                    {% for category, message in messages %}
+                        <li class="alert alert-{{ category }}">{{ message }}</li>
+                    {% endfor %}
+                    </ul>
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <!-- Nút Đăng Xuất -->
+        <form action="{{ url_for('logout') }}" method="POST" style="margin-top: 20px;">
+            <input type="submit" class="btn btn-secondary" value="Đăng Xuất">
+        </form>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>
